@@ -1,0 +1,33 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+backend/dist
+frontend/blog-app-frontend/dist
+
+backend/src/features/sample data/
+
+# Logs
+*.log
+logs/
+backend/logs.txt
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache
+.eslintcache
+.vite/
+
+# Test coverage
+coverage/
