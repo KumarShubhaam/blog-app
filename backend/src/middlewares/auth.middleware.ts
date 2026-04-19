@@ -7,8 +7,9 @@ dotenv.config();
 const app_jwt_secret = String(process.env.APP_JWT_SECRET)
 
 const Auth = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers['authorization'];
-  if (!token || Array.isArray(token)) {
+  // const token = req.headers['authorization'];
+  const token = req.cookies.token;
+  if (!token) {
     res.status(403).send({ msg: "No token provided for auth." })
     return;
   }
@@ -29,7 +30,7 @@ export function GenerateJWT(payload: string | object) {
   return token;
 }
 
-function ValidateJWT(token: string) {
+export function ValidateJWT(token: string) {
   try {
     let payload = jwt.verify(token, app_jwt_secret)
     console.log(payload);
