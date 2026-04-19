@@ -55,6 +55,6 @@ const UserSchema = new mongoose.Schema({
 let UserModel = mongoose.model('Users', UserSchema);
 
 export type UserType = InferSchemaType<typeof UserSchema>;
-export type UserInput = Omit<UserType, 'createdAt' | 'updatedAt' | 'blogs'>;
+// export type UserInput = Omit<UserType, 'createdAt' | 'updatedAt' | 'blogs'>;
 
 export default UserModel;

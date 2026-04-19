@@ -1,10 +1,11 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, RequestParamHandler } from "express";
 import UserRepository from "./users.repository.js";
 import Log from "../../middlewares/logger.middleware.js";
 import { AppError } from "../../middlewares/customError.middleware.js";
 import { Decrypt, Encrypt, isStrongPassword } from "../../utils.js";
-import type { UserInput } from "./user.model.js";
-import { GenerateJWT } from "../../middlewares/auth.middleware.js";
+// import type { UserInput } from "./user.model.js";
+import { GenerateJWT, ValidateJWT } from "../../middlewares/auth.middleware.js";
+import type { User, UserInput } from "@blog-app/shared";
 
 class UserController {
   private repository: UserRepository;
@@ -19,7 +20,7 @@ class UserController {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private async sanitizeUserInputObject(userObject: any) {
+  private async sanitizeUserInputObject(userObject: Partial<UserInput>) {
     
     const { name, username, password, email, gender } = userObject;
     let sanitizedUserInputObject: sanitizedUser = {}
@@ -51,7 +52,7 @@ class UserController {
     }
 
     if(username){
-      sanitizedUserInputObject.username = username;
+      sanitizedUserInputObject.username = username.toLowerCase();
     }
 
     if (password ) {
@@ -61,16 +62,45 @@ class UserController {
       sanitizedUserInputObject.password = await Encrypt(password);
     }
 
-
     return sanitizedUserInputObject;
+  }
+
+  async CheckForUserName(req: Request, res: Response, next: NextFunction):Promise<Response<{available: boolean}> | void> {
+    const { username } = req.query;
+    try {
+      const user = await this.repository.DocumentExist({username});
+      if (user){
+        return res.status(200).send({avaiable: false});
+      }else{
+        return res.status(200).send({available:true});
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async LoginUserStatus(req: Request, res: Response, next: NextFunction): Promise<Response<{authenticated: boolean, payload: object}>>{
+    const token = req.cookies.token;
+    try {
+      const payload = ValidateJWT(token);
+      if (payload){
+        this.logger.info(`User status verified ${payload}`);
+        return res.status(200).send({authenticated: true, payload})
+      }else{
+        this.logger.info(`User status not verified for token ${token}`);
+        return res.status(200).send({authenticated:false, payload:null})
+      }
+    } catch (error) {
+      throw new AppError(403, `Error occured due in verifying user status: ${error}`)
+    }
   }
 
   // AUTHENTICATE USER OR SIGNIN
   async signin(req: Request, res: Response, next: NextFunction) {
     let { username, password } = req.body;
-
     try {
       let user = await this.repository.ReadUserByUsername(username, true);
+      console.log('user', user);
       if (user) {
         if (await Decrypt(password, user.password)) {
           // generate token
@@ -78,10 +108,14 @@ class UserController {
             id: user._id,
             username: user.username,
             name: user.name,
+            email: user.email,
+            gender: user.gender,
+
           }
           const token = GenerateJWT(payload);
           this.logger.info(`Login Successful for user ${{id: user._id ,username: user.username, name: user.name, token: token}}`);
-          return res.status(200).send({ msg: 'Login successful',token: token, user: {id: user._id ,username: user.username, name: user.name}});
+          res.cookie('token', token, { maxAge: 1000*60*60, httpOnly: true });
+          return res.status(200).send({ msg: 'Login successful', user: {id: user._id ,username: user.username, name: user.name}});
         } else {
           throw new AppError(401, `Username and Password combination did not match`)
         }
@@ -93,8 +127,19 @@ class UserController {
     }
   }
 
+  // Logout user
+  async signout(req: Request, res: Response, next: NextFunction){
+    try {
+      res.clearCookie('token');
+      return res.status(200).send({msg: 'Logout successful'});
+    } catch (error) {
+      let err = new AppError(403, `Unable to logout due to error ${error}`);
+      next(err);
+    }
+  }
+
   // SIGN UP OR ADD USER
-  async signup(req: Request, res: Response, next: NextFunction) {
+  async signup(req: Request, res: Response, next: NextFunction): Promise<Response<User> | void> {
     let { name, username, password, email, gender } = req.body;
     try {
       let userObject = await this.sanitizeUserInputObject({ name, username, password, email, gender })

@@ -1,8 +1,9 @@
 
 import { error } from 'node:console';
 import { AppError } from '../../middlewares/customError.middleware.js';
-import UserModel, { type UserType, type UserInput } from './user.model.js';
+import UserModel, { type UserType } from './user.model.js';
 import Log from '../../middlewares/logger.middleware.js';
+import type { UserInput } from '@blog-app/shared';
 
 const logger = new Log('UserRepository')
 
@@ -10,12 +11,12 @@ const logger = new Log('UserRepository')
 class UserRepository {
   private default_fields_to_be_fetched: string
   constructor(){
-    this.default_fields_to_be_fetched = 'name username email gender';
+    this.default_fields_to_be_fetched = 'name username password email gender';
   }
 
   // CREATE
   async CreateUser(userObject: sanitizedUser) {
-    console.log(userObject);
+    // console.log(userObject);
     let user = new UserModel(userObject);
     try {
       logger.info(`New user added to database: ${user}`);
@@ -58,10 +59,10 @@ class UserRepository {
     let fieldToBeFetched = this.default_fields_to_be_fetched;
     try {
       if(authPurpose){
-        fieldToBeFetched = 'username password'
+        fieldToBeFetched = 'name username password email gender'
       }
-      let user;
-      user = await UserModel.findOne({ username: username }, fieldToBeFetched)
+      // let user;
+      let user = await UserModel.findOne({ username: username }, fieldToBeFetched)
       // if(password != ''){
       //   user = await UserModel.findOne({username: username, password: password})
       // }else{
@@ -103,6 +104,7 @@ class UserRepository {
     }
   }
 
+  // check for document exists
   async DocumentExist(query: object) {
     if (query === null || typeof query !== 'object' || Array.isArray(query)) {
       throw new Error('Expecting a non-null plain object');
