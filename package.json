@@ -1,0 +1,16 @@
+{
+  "name": "blog-app-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run dev -w backend",
+    "build": "npm run build -w @blog-app/shared && npm run build -w frontend && npm run build -w backend",
+    "install:all": "npm install"
+  }
+}
