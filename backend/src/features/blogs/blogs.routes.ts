@@ -6,6 +6,12 @@ const blogRoutes = Router()
 
 const controller = new BlogController();
 
+// get all blogs
+blogRoutes.get('/all', (req: Request, res: Response, next: NextFunction) => {
+  console.log('All blogs');
+  controller.getAllBlogs(req, res, next);
+});
+
 // get all blogs for user
 blogRoutes.get('/blogs/:userId', (req: Request, res: Response, next: NextFunction) => {
   controller.getAllBlogsForUser(req, res, next);

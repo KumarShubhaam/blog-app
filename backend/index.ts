@@ -1,7 +1,7 @@
 import express from 'express';
 import app from './server.js';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
+import cors, { type CorsOptions } from 'cors';
 
 import blogRoutes from './src/features/blogs/blogs.routes.js';
 import userRoutes from './src/features/users/users.routers.js';
@@ -13,7 +13,7 @@ import { createNewBlogs } from './src/features/sample data/blogs sample/blogs.sa
 import Auth from './src/middlewares/auth.middleware.js';
 
 // Cross-origin request policy
-const corsOption = {
+const corsOption: CorsOptions = {
   origin: `http://${process.env.FRONTEND_IP}:${process.env.FRONTEND_PORT}`,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

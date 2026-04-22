@@ -9,6 +9,17 @@ export default class BlogController {
     this.repository = new BlogsRepository()
   }
 
+  async getAllBlogs(req: Request, res: Response, next: NextFunction) {
+    try {
+      let blogs = await this.repository.ReadAllBlogs();
+      // console.log('--------------------------------------------------------');
+      // console.log(blogs);
+      return res.status(200).send(blogs);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getAllBlogsForUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
@@ -82,6 +93,4 @@ export default class BlogController {
       next(error);
     }
   }
-
-
 }

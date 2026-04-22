@@ -40,6 +40,16 @@ export default class BlogsRepository {
   }
   
   // READ
+  async ReadAllBlogs(){
+    try {
+      let blogs = await BlogsModel.find();
+      // console.log(blogs);
+      return blogs;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async ReadBlogById(id: string){
     try {
       let blog = await BlogsModel.findById(id, this.projected_properties)

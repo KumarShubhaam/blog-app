@@ -1,9 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-interface BlogType {
-  id: string
-}
-
 const BlogsSchema = new mongoose.Schema({
   author: {
     type: String,
